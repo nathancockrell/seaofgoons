@@ -1,3 +1,5 @@
+import dparse from "./dparse.js";
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const gridSize = 41;
@@ -13,10 +15,11 @@ let boat = {
     x: 20,
     y: 20
 };
-let gold = 0;
+let gold = 50;
 let wood = 0;
 let paper = 0;
 let cannonballs = 0;
+let goldRate = .15;
 
 const maxWood = 15;
 const maxPaper = 20;
@@ -132,7 +135,7 @@ function displayRandomMessage() {
 
 // Update the gold display
 function updateGold() {
-    goldElement.textContent = `Gold: ${gold}`;
+    goldElement.textContent = `Gold: ${dparse(gold)}`;
 }
 
 // Update the inventory display
@@ -182,7 +185,7 @@ function handleBuy(item) {
     if (!currentIsland) return;
 
     const prices = currentIsland.shop[item];
-    if (gold >= prices.buy && getItemCount(item) < getMaxItem(item)) {
+    if (gold >= prices.buy && getItemCount(item) < getMaxItem(item) && prices.stock > 0) {
         gold -= prices.buy;
         incrementItem(item);
         prices.stock--;
@@ -303,9 +306,13 @@ function handleKeyDown(event) {
     const canMove = !islandCells.some(cell => cell.x === newX && cell.y === newY && !cell.isDock);
 
     if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize && canMove) {
+        
+        if(newX != boat.x || newY != boat.y) {gold += goldRate;}
+        
         boat.x = newX;
         boat.y = newY;
-        if(newX != boat.x || newY != boat.y) {gold += 1;}
+        
+        
         drawGrid();
         drawBoat();
         displayRandomMessage();
