@@ -297,6 +297,7 @@ function handleKeyDown(event) {
         case 'd':
             newX++;
             break;
+
     }
 
     const canMove = !islandCells.some(cell => cell.x === newX && cell.y === newY && !cell.isDock);
@@ -304,7 +305,7 @@ function handleKeyDown(event) {
     if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize && canMove) {
         boat.x = newX;
         boat.y = newY;
-        gold += 1;
+        if(newX != boat.x || nexY != boat.y) {gold += 1;}
         drawGrid();
         drawBoat();
         displayRandomMessage();
