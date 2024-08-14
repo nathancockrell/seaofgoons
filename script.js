@@ -35,7 +35,8 @@ const pirateMessages = [
     "Sail on, ye brave sailor!",
     "Blimey! Watch out for sea monsters!",
     "Land ho! But not just yet!",
-    "Ahoy matey! More gold for the chest!"
+    "Ahoy matey! More gold for the chest!",
+    "There be squalls ahead."
 ];
 
 const islands = [
