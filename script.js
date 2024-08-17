@@ -13,7 +13,9 @@ const shopElement = document.getElementById('shop');
 
 let boat = {
     x: 20,
-    y: 20
+    y: 20,
+    speed:1,
+    direction:0
 };
 let gold = 50;
 let wood = 0;
@@ -124,7 +126,7 @@ function drawIslands() {
 
 // Draw the boat
 function drawBoat() {
-    ctx.fillStyle = 'brown'; // Boat color
+    ctx.fillStyle = '#f7f7f7'; // Boat color
     ctx.fillRect(boat.x * cellSize, boat.y * cellSize, cellSize, cellSize);
 }
 
@@ -287,23 +289,23 @@ function handleKeyDown(event) {
     switch (event.key) {
         case 'ArrowUp':
         case 'w':
-            newY--;
+            if(boat.speed<3){boat.speed++};
             break;
         case 'ArrowDown':
         case 's':
-            newY++;
+            if(boat.speed>0){boat.speed--};
             break;
         case 'ArrowLeft':
         case 'a':
-            newX--;
+            boat.direction-=90;
             break;
         case 'ArrowRight':
         case 'd':
-            newX++;
+            boat.direction+=90;
             break;
 
     }
-
+    
     const canMove = !islandCells.some(cell => cell.x === newX && cell.y === newY && !cell.isDock);
 
     if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize && canMove) {

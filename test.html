@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oval Collision Game</title>
+    <style>
+        canvas {
+            background-color: #f0f0f0;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let path = [
+            {}
+        ]
+
+        const islands = [
+            {
+                x:100,
+                y:canvas.height - 110,
+                size:100,
+                color:'red'
+            },
+            {
+                x:canvas.width-100,
+                y:100,
+                size:90,
+                color:'yellow'
+            }
+        ]
+
+        const ovals = [
+            {
+                id:0,
+                x: 50,
+                y: 50,
+                width: 10,
+                height: 6,
+                speed: 0,
+                acceleration: 0.005,
+                direction: 0,
+                turnSpeed:0,
+                turnAcceleration:0,
+                turnAsquared:1e-4,
+                keys: { up: false, down: false, left: false, right: false }
+            },
+            {
+                id:1,
+                x: canvas.width - 100,
+                y: canvas.height - 100,
+                width: 10,
+                height: 6,
+                speed: 0,
+                acceleration: 0.01,
+                direction: Math.PI,
+                turnSpeed:0,
+                turnAcceleration:0,
+                turnAsquared:1e-4,
+                keys: { up: false, down: false, left: false, right: false }
+            },
+            {
+                id:2,
+                x: canvas.width / 2 - 25,
+                y: canvas.height / 2 - 15,
+                width: 18,
+                height: 10,
+                speed: 0,
+                acceleration: 0.01,
+                direction: Math.PI / 2,
+                turnSpeed:0,
+                turnAcceleration:0,
+                turnAsquared:1e-4,
+                keys: { up: false, down: false, left: false, right: false },
+                inputs: { up: false, down: false, left: false, right: false }
+            }
+        ];
+        let timer;
+        function makePath(oval, from, to, deltaTime){
+            // calculate angle
+            let dx=from.x-to.x;
+            let dy=from.y-to.y;
+            let distance = Math.sqrt(dx*dx - dy*dy)
+            let angleTo=Math.acos(dy/distance);
+            let angleAdjust=oval.direction-angleTo;
+            timer = Math.abs(angleAdjust)*oval.turnSpeed;
+
+            let newPath= {direction, time, direction,time, direction, time}
+            paths.push(newPath);
+        }
+        function move(oval, from, to,deltaTime){
+            
+            // if(angleAdjust>0){
+            //     oval.keys.left = true;
+            //     console.log(oval.inputs.left)
+            // };
+            // if(angleAdjust<0){
+            //     oval.keys.right = true;
+            //     console.log(oval.inputs.left)
+            // };
+            // if(angleAdjust<0) target=oval.inputs.right;
+
+
+            
+            
+        }
+
+        function drawOval(oval) {
+            ctx.save();
+            ctx.translate(oval.x, oval.y);
+            ctx.rotate(oval.direction);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, oval.width, oval.height, 0, 0, 2 * Math.PI);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+            ctx.restore();
+        }
+        function drawIsland(island) {
+            ctx.fillStyle=island.color;
+            ctx.fillRect(island.x, island.y, island.size, island.size);
+        }
+
+        function updateOval(oval) {
+            // Change turn speed
+            if(oval.turnAcceleration>0.001){oval.turnAcceleration = .001}
+            if(oval.turnAcceleration<-0.001){oval.turnAcceleration = -.001}
+            if (oval.keys.left && -0.001<=oval.turnAcceleration && oval.turnAcceleration<=0.001) {
+                oval.turnAcceleration -= Number(oval.turnAsquared);
+            }
+            if (oval.keys.right && -0.001<=oval.turnAcceleration && oval.turnAcceleration<=0.001) {
+                oval.turnAcceleration = Number(oval.turnAcceleration) + Number(oval.turnAsquared);
+                
+            }
+            
+            // if (oval.turnSpeed>-0.05) oval.turnSpeed -= oval.turnAcceleration;
+            if(-0.01>oval.turnSpeed){
+                oval.turnSpeed=-0.01;
+            }
+            if(oval.turnSpeed>0.01) oval.turnSpeed=0.01;
+            if (-0.01<=oval.turnSpeed && oval.turnSpeed<=0.01) {
+                console.log(oval.turnSpeed)
+                oval.turnSpeed += oval.turnAcceleration;
+            }
+            // Change speed with keys
+            if (oval.keys.up && oval.speed < 1) oval.speed += oval.acceleration;
+            if (oval.keys.down && oval.speed >0 ) oval.speed -= oval.acceleration;
+            // Change speed with program
+            if(oval.path){move(oval)};
+            // check for negative speed
+            if (oval.speed <0) {oval.speed=0};
+
+            // Move oval
+            // console.log(oval.direction)
+            oval.x += Math.cos(oval.direction) * oval.speed;
+            oval.y += Math.sin(oval.direction) * oval.speed;
+            // Angle oval
+            oval.direction = oval.direction + oval.turnSpeed
+
+            // Boundary collision
+            if (oval.x < 0) oval.x = 0;
+            if (oval.y < 0) oval.y = 0;
+            if (oval.x > canvas.width) oval.x = canvas.width;
+            if (oval.y > canvas.height) oval.y = canvas.height;
+        }
+
+        function detectCollision(oval1, oval2) {
+            const dx = oval1.x - oval2.x;
+            const dy = oval1.y - oval2.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            let angle1 = oval1.direction%(2*Math.PI);
+            let angle2 = oval2.direction%(2*Math.PI);
+            let angleToOther = Math.acos(dx/distance);
+            let theta1 = angle1 + angleToOther;
+            let theta2 = angle2 + angleToOther;
+            // console.log(oval1.id + " to " + oval2.id + ": " + angleToOther);
+            
+            // radius at angle = (ab)/((b^2cos^2(angle1)+a^2sin^2angle1)^(1/2))
+            // Reference: https://www.physicsforums.com/threads/how-can-i-calculate-the-radius-of-an-ellipse-at-a-specific-angle.160272/
+
+            // let a = oval1.width;
+            // let b = oval1.height;
+            // let c = oval2.width;
+            // let d = oval2.height;
+            // radiusAtAngle1 = 
+            // (a*b)/Math.pow((b*b)*(Math.cos(theta1)*Math.cos(theta1))+
+            // (a*a)*(Math.sin(theta1)*Math.sin(theta1)), .5);
+            // radiusAtAngle2 = 
+            // (c*d)/Math.pow((d*d)*(Math.cos(theta2)*Math.cos(theta2))+
+            // (c*c)*(Math.sin(theta2)*Math.sin(theta2)), .5);
+
+            radiusAtAngle1 =
+            (oval1.width*oval1.height)/Math.pow((oval1.height*oval1.height)*(Math.cos(theta1)*Math.cos(theta1))+
+            (oval1.width*oval1.width)*(Math.sin(theta1)*Math.sin(theta1)), .5);
+            radiusAtAngle2 = 
+            (oval2.width*oval2.height)/Math.pow((oval2.height*oval2.height)*(Math.cos(theta2)*Math.cos(theta2))+
+            (oval2.width*oval2.width)*(Math.sin(theta2)*Math.sin(theta2)), .5);
+            // console.log("Boat1: "+ angle1)
+
+
+            const minDist = radiusAtAngle1 + radiusAtAngle2;
+
+            return distance < minDist;
+        }
+
+        function resetOvals() {
+            ovals[0].x = 50;
+            ovals[0].y = 50;
+            ovals[0].speed = 0;
+            ovals[0].direction = 0;
+
+            ovals[1].x = canvas.width - 100;
+            ovals[1].y = canvas.height - 100;
+            ovals[1].speed = 0;
+            ovals[1].direction = Math.PI;
+
+            ovals[2].x = canvas.width / 2 - 25;
+            ovals[2].y = canvas.height / 2 - 15;
+            ovals[2].speed = 0;
+            ovals[2].direction = Math.PI / 2;
+        }
+
+        function gameLoop(deltaTime) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            move(ovals[0],ovals[0],islands[0],deltaTime)
+            ovals.forEach(updateOval);
+
+            for (let i = 0; i < ovals.length; i++) {
+                for (let j = i + 1; j < ovals.length; j++) {
+                    if (detectCollision(ovals[i], ovals[j])) {
+                        resetOvals();
+                    }
+                }
+            }
+
+            islands.forEach(drawIsland);
+            ovals.forEach(drawOval);
+            
+            // console.log(ovals[0].x.toPrecision(4), ovals[0].y.toPrecision(4),ovals[0].speed.toPrecision(4));
+            
+
+            // requestAnimationFrame(gameLoop);
+        }
+
+        const keyStates = {};
+
+        document.addEventListener('keydown', (event) => {
+            if (keyStates[event.key]) return;
+            keyStates[event.key] = true;
+
+            switch (event.key) {
+                case 'a': ovals[0].keys.left = true; break;
+                case 'd': ovals[0].keys.right = true; break;
+                case 'w': ovals[0].keys.up = true; break;
+                case 's': ovals[0].keys.down = true; break;
+                case 'ArrowLeft': ovals[1].keys.left = true; break;
+                case 'ArrowRight': ovals[1].keys.right = true; break;
+                case 'ArrowUp': ovals[1].keys.up = true; break;
+                case 'ArrowDown': ovals[1].keys.down = true; break;
+                case 'j': ovals[2].keys.left = true; break;
+                case 'l': ovals[2].keys.right = true; break;
+                case 'i': ovals[2].keys.up = true; break;
+                case 'k': ovals[2].keys.down = true; break;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            keyStates[event.key] = false;
+
+            switch (event.key) {
+                case 'a': ovals[0].keys.left = false; break;
+                case 'd': ovals[0].keys.right = false; break;
+                case 'w': ovals[0].keys.up = false; break;
+                case 's': ovals[0].keys.down = false; break;
+                case 'ArrowLeft': ovals[1].keys.left = false; break;
+                case 'ArrowRight': ovals[1].keys.right = false; break;
+                case 'ArrowUp': ovals[1].keys.up = false; break;
+                case 'ArrowDown': ovals[1].keys.down = false; break;
+                case 'j': ovals[2].keys.left = false; break;
+                case 'l': ovals[2].keys.right = false; break;
+                case 'i': ovals[2].keys.up = false; break;
+                case 'k': ovals[2].keys.down = false; break;
+            }
+        });
+        // let tickSpeed=1
+        // window.setInterval(()=>{
+        //     gameLoop();
+        // }, tickSpeed)
+        let lastTime = 0;
+
+        function tick(currentTime) {
+            
+        // Calculate the elapsed time in seconds
+        let deltaTime = (currentTime - lastTime) / 1000;
+        lastTime = currentTime;
+        
+
+        gameLoop(deltaTime);
+
+        // Request the next frame
+        requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+        
+    </script>
+</body>
+</html>
