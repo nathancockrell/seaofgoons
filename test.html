@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oval Collision Game</title>
+    <title>boat Collision Game</title>
     <style>
         canvas {
             background-color: #f0f0f0;
@@ -37,7 +37,7 @@
             }
         ]
 
-        const ovals = [
+        const boats = [
             {
                 id:0,
                 x: 50,
@@ -83,41 +83,41 @@
             }
         ];
         let timer;
-        function makePath(oval, from, to, deltaTime){
+        function makePath(boat, from, to, deltaTime){
             // calculate angle
             let dx=from.x-to.x;
             let dy=from.y-to.y;
             let distance = Math.sqrt(dx*dx - dy*dy)
             let angleTo=Math.acos(dy/distance);
-            let angleAdjust=oval.direction-angleTo;
-            timer = Math.abs(angleAdjust)*oval.turnSpeed;
+            let angleAdjust=boat.direction-angleTo;
+            timer = Math.abs(angleAdjust)*boat.turnSpeed;
 
             let newPath= {direction, time, direction,time, direction, time}
             paths.push(newPath);
         }
-        function move(oval, from, to,deltaTime){
+        function move(boat, from, to,deltaTime){
             
             // if(angleAdjust>0){
-            //     oval.keys.left = true;
-            //     console.log(oval.inputs.left)
+            //     boat.keys.left = true;
+            //     console.log(boat.inputs.left)
             // };
             // if(angleAdjust<0){
-            //     oval.keys.right = true;
-            //     console.log(oval.inputs.left)
+            //     boat.keys.right = true;
+            //     console.log(boat.inputs.left)
             // };
-            // if(angleAdjust<0) target=oval.inputs.right;
+            // if(angleAdjust<0) target=boat.inputs.right;
 
 
             
             
         }
 
-        function drawOval(oval) {
+        function drawboat(boat) {
             ctx.save();
-            ctx.translate(oval.x, oval.y);
-            ctx.rotate(oval.direction);
+            ctx.translate(boat.x, boat.y);
+            ctx.rotate(boat.direction);
             ctx.beginPath();
-            ctx.ellipse(0, 0, oval.width, oval.height, 0, 0, 2 * Math.PI);
+            ctx.ellipse(0, 0, boat.width, boat.height, 0, 0, 2 * Math.PI);
             ctx.fillStyle = 'blue';
             ctx.fill();
             ctx.restore();
@@ -127,67 +127,67 @@
             ctx.fillRect(island.x, island.y, island.size, island.size);
         }
 
-        function updateOval(oval) {
+        function updateboat(boat) {
             // Change turn speed
-            if(oval.turnAcceleration>0.001){oval.turnAcceleration = .001}
-            if(oval.turnAcceleration<-0.001){oval.turnAcceleration = -.001}
-            if (oval.keys.left && -0.001<=oval.turnAcceleration && oval.turnAcceleration<=0.001) {
-                oval.turnAcceleration -= Number(oval.turnAsquared);
+            if(boat.turnAcceleration>0.001){boat.turnAcceleration = .001}
+            if(boat.turnAcceleration<-0.001){boat.turnAcceleration = -.001}
+            if (boat.keys.left && -0.001<=boat.turnAcceleration && boat.turnAcceleration<=0.001) {
+                boat.turnAcceleration -= Number(boat.turnAsquared);
             }
-            if (oval.keys.right && -0.001<=oval.turnAcceleration && oval.turnAcceleration<=0.001) {
-                oval.turnAcceleration = Number(oval.turnAcceleration) + Number(oval.turnAsquared);
+            if (boat.keys.right && -0.001<=boat.turnAcceleration && boat.turnAcceleration<=0.001) {
+                boat.turnAcceleration = Number(boat.turnAcceleration) + Number(boat.turnAsquared);
                 
             }
             
-            // if (oval.turnSpeed>-0.05) oval.turnSpeed -= oval.turnAcceleration;
-            if(-0.01>oval.turnSpeed){
-                oval.turnSpeed=-0.01;
+            // if (boat.turnSpeed>-0.05) boat.turnSpeed -= boat.turnAcceleration;
+            if(-0.01>boat.turnSpeed){
+                boat.turnSpeed=-0.01;
             }
-            if(oval.turnSpeed>0.01) oval.turnSpeed=0.01;
-            if (-0.01<=oval.turnSpeed && oval.turnSpeed<=0.01) {
-                console.log(oval.turnSpeed)
-                oval.turnSpeed += oval.turnAcceleration;
+            if(boat.turnSpeed>0.01) boat.turnSpeed=0.01;
+            if (-0.01<=boat.turnSpeed && boat.turnSpeed<=0.01) {
+                console.log(boat.turnSpeed)
+                boat.turnSpeed += boat.turnAcceleration;
             }
             // Change speed with keys
-            if (oval.keys.up && oval.speed < 1) oval.speed += oval.acceleration;
-            if (oval.keys.down && oval.speed >0 ) oval.speed -= oval.acceleration;
+            if (boat.keys.up && boat.speed < 1) boat.speed += boat.acceleration;
+            if (boat.keys.down && boat.speed >0 ) boat.speed -= boat.acceleration;
             // Change speed with program
-            if(oval.path){move(oval)};
+            if(boat.path){move(boat)};
             // check for negative speed
-            if (oval.speed <0) {oval.speed=0};
+            if (boat.speed <0) {boat.speed=0};
 
-            // Move oval
-            // console.log(oval.direction)
-            oval.x += Math.cos(oval.direction) * oval.speed;
-            oval.y += Math.sin(oval.direction) * oval.speed;
-            // Angle oval
-            oval.direction = oval.direction + oval.turnSpeed
+            // Move boat
+            // console.log(boat.direction)
+            boat.x += Math.cos(boat.direction) * boat.speed;
+            boat.y += Math.sin(boat.direction) * boat.speed;
+            // Angle boat
+            boat.direction = boat.direction + boat.turnSpeed
 
             // Boundary collision
-            if (oval.x < 0) oval.x = 0;
-            if (oval.y < 0) oval.y = 0;
-            if (oval.x > canvas.width) oval.x = canvas.width;
-            if (oval.y > canvas.height) oval.y = canvas.height;
+            if (boat.x < 0) boat.x = 0;
+            if (boat.y < 0) boat.y = 0;
+            if (boat.x > canvas.width) boat.x = canvas.width;
+            if (boat.y > canvas.height) boat.y = canvas.height;
         }
 
-        function detectCollision(oval1, oval2) {
-            const dx = oval1.x - oval2.x;
-            const dy = oval1.y - oval2.y;
+        function detectCollision(boat1, boat2) {
+            const dx = boat1.x - boat2.x;
+            const dy = boat1.y - boat2.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            let angle1 = oval1.direction%(2*Math.PI);
-            let angle2 = oval2.direction%(2*Math.PI);
+            let angle1 = boat1.direction%(2*Math.PI);
+            let angle2 = boat2.direction%(2*Math.PI);
             let angleToOther = Math.acos(dx/distance);
             let theta1 = angle1 + angleToOther;
             let theta2 = angle2 + angleToOther;
-            // console.log(oval1.id + " to " + oval2.id + ": " + angleToOther);
+            // console.log(boat1.id + " to " + boat2.id + ": " + angleToOther);
             
             // radius at angle = (ab)/((b^2cos^2(angle1)+a^2sin^2angle1)^(1/2))
             // Reference: https://www.physicsforums.com/threads/how-can-i-calculate-the-radius-of-an-ellipse-at-a-specific-angle.160272/
 
-            // let a = oval1.width;
-            // let b = oval1.height;
-            // let c = oval2.width;
-            // let d = oval2.height;
+            // let a = boat1.width;
+            // let b = boat1.height;
+            // let c = boat2.width;
+            // let d = boat2.height;
             // radiusAtAngle1 = 
             // (a*b)/Math.pow((b*b)*(Math.cos(theta1)*Math.cos(theta1))+
             // (a*a)*(Math.sin(theta1)*Math.sin(theta1)), .5);
@@ -196,11 +196,11 @@
             // (c*c)*(Math.sin(theta2)*Math.sin(theta2)), .5);
 
             radiusAtAngle1 =
-            (oval1.width*oval1.height)/Math.pow((oval1.height*oval1.height)*(Math.cos(theta1)*Math.cos(theta1))+
-            (oval1.width*oval1.width)*(Math.sin(theta1)*Math.sin(theta1)), .5);
+            (boat1.width*boat1.height)/Math.pow((boat1.height*boat1.height)*(Math.cos(theta1)*Math.cos(theta1))+
+            (boat1.width*boat1.width)*(Math.sin(theta1)*Math.sin(theta1)), .5);
             radiusAtAngle2 = 
-            (oval2.width*oval2.height)/Math.pow((oval2.height*oval2.height)*(Math.cos(theta2)*Math.cos(theta2))+
-            (oval2.width*oval2.width)*(Math.sin(theta2)*Math.sin(theta2)), .5);
+            (boat2.width*boat2.height)/Math.pow((boat2.height*boat2.height)*(Math.cos(theta2)*Math.cos(theta2))+
+            (boat2.width*boat2.width)*(Math.sin(theta2)*Math.sin(theta2)), .5);
             // console.log("Boat1: "+ angle1)
 
 
@@ -209,40 +209,40 @@
             return distance < minDist;
         }
 
-        function resetOvals() {
-            ovals[0].x = 50;
-            ovals[0].y = 50;
-            ovals[0].speed = 0;
-            ovals[0].direction = 0;
+        function resetboats() {
+            boats[0].x = 50;
+            boats[0].y = 50;
+            boats[0].speed = 0;
+            boats[0].direction = 0;
 
-            ovals[1].x = canvas.width - 100;
-            ovals[1].y = canvas.height - 100;
-            ovals[1].speed = 0;
-            ovals[1].direction = Math.PI;
+            boats[1].x = canvas.width - 100;
+            boats[1].y = canvas.height - 100;
+            boats[1].speed = 0;
+            boats[1].direction = Math.PI;
 
-            ovals[2].x = canvas.width / 2 - 25;
-            ovals[2].y = canvas.height / 2 - 15;
-            ovals[2].speed = 0;
-            ovals[2].direction = Math.PI / 2;
+            boats[2].x = canvas.width / 2 - 25;
+            boats[2].y = canvas.height / 2 - 15;
+            boats[2].speed = 0;
+            boats[2].direction = Math.PI / 2;
         }
 
         function gameLoop(deltaTime) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            move(ovals[0],ovals[0],islands[0],deltaTime)
-            ovals.forEach(updateOval);
+            move(boats[0],boats[0],islands[0],deltaTime)
+            boats.forEach(updateboat);
 
-            for (let i = 0; i < ovals.length; i++) {
-                for (let j = i + 1; j < ovals.length; j++) {
-                    if (detectCollision(ovals[i], ovals[j])) {
-                        resetOvals();
+            for (let i = 0; i < boats.length; i++) {
+                for (let j = i + 1; j < boats.length; j++) {
+                    if (detectCollision(boats[i], boats[j])) {
+                        resetboats();
                     }
                 }
             }
 
             islands.forEach(drawIsland);
-            ovals.forEach(drawOval);
+            boats.forEach(drawboat);
             
-            // console.log(ovals[0].x.toPrecision(4), ovals[0].y.toPrecision(4),ovals[0].speed.toPrecision(4));
+            // console.log(boats[0].x.toPrecision(4), boats[0].y.toPrecision(4),boats[0].speed.toPrecision(4));
             
 
             // requestAnimationFrame(gameLoop);
@@ -255,18 +255,18 @@
             keyStates[event.key] = true;
 
             switch (event.key) {
-                case 'a': ovals[0].keys.left = true; break;
-                case 'd': ovals[0].keys.right = true; break;
-                case 'w': ovals[0].keys.up = true; break;
-                case 's': ovals[0].keys.down = true; break;
-                case 'ArrowLeft': ovals[1].keys.left = true; break;
-                case 'ArrowRight': ovals[1].keys.right = true; break;
-                case 'ArrowUp': ovals[1].keys.up = true; break;
-                case 'ArrowDown': ovals[1].keys.down = true; break;
-                case 'j': ovals[2].keys.left = true; break;
-                case 'l': ovals[2].keys.right = true; break;
-                case 'i': ovals[2].keys.up = true; break;
-                case 'k': ovals[2].keys.down = true; break;
+                case 'a': boats[0].keys.left = true; break;
+                case 'd': boats[0].keys.right = true; break;
+                case 'w': boats[0].keys.up = true; break;
+                case 's': boats[0].keys.down = true; break;
+                case 'ArrowLeft': boats[1].keys.left = true; break;
+                case 'ArrowRight': boats[1].keys.right = true; break;
+                case 'ArrowUp': boats[1].keys.up = true; break;
+                case 'ArrowDown': boats[1].keys.down = true; break;
+                case 'j': boats[2].keys.left = true; break;
+                case 'l': boats[2].keys.right = true; break;
+                case 'i': boats[2].keys.up = true; break;
+                case 'k': boats[2].keys.down = true; break;
             }
         });
 
@@ -274,18 +274,18 @@
             keyStates[event.key] = false;
 
             switch (event.key) {
-                case 'a': ovals[0].keys.left = false; break;
-                case 'd': ovals[0].keys.right = false; break;
-                case 'w': ovals[0].keys.up = false; break;
-                case 's': ovals[0].keys.down = false; break;
-                case 'ArrowLeft': ovals[1].keys.left = false; break;
-                case 'ArrowRight': ovals[1].keys.right = false; break;
-                case 'ArrowUp': ovals[1].keys.up = false; break;
-                case 'ArrowDown': ovals[1].keys.down = false; break;
-                case 'j': ovals[2].keys.left = false; break;
-                case 'l': ovals[2].keys.right = false; break;
-                case 'i': ovals[2].keys.up = false; break;
-                case 'k': ovals[2].keys.down = false; break;
+                case 'a': boats[0].keys.left = false; break;
+                case 'd': boats[0].keys.right = false; break;
+                case 'w': boats[0].keys.up = false; break;
+                case 's': boats[0].keys.down = false; break;
+                case 'ArrowLeft': boats[1].keys.left = false; break;
+                case 'ArrowRight': boats[1].keys.right = false; break;
+                case 'ArrowUp': boats[1].keys.up = false; break;
+                case 'ArrowDown': boats[1].keys.down = false; break;
+                case 'j': boats[2].keys.left = false; break;
+                case 'l': boats[2].keys.right = false; break;
+                case 'i': boats[2].keys.up = false; break;
+                case 'k': boats[2].keys.down = false; break;
             }
         });
         // let tickSpeed=1
