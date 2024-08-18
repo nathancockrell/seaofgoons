@@ -285,23 +285,28 @@ function startStockRefill() {
 function handleKeyDown(event) {
     let newX = boat.x;
     let newY = boat.y;
+    console.log("right")
 
     switch (event.key) {
         case 'ArrowUp':
         case 'w':
-            if(boat.speed<3){boat.speed++};
+            // if(boat.speed<3){boat.speed++};
+            newY--;
             break;
         case 'ArrowDown':
         case 's':
-            if(boat.speed>0){boat.speed--};
+            // if(boat.speed>0){boat.speed--};
+            newY++;
             break;
         case 'ArrowLeft':
         case 'a':
-            boat.direction-=90;
+            // boat.direction-=90;
+            newX--;
             break;
         case 'ArrowRight':
         case 'd':
-            boat.direction+=90;
+            // boat.direction+=90;
+            newX++;
             break;
 
     }
@@ -310,7 +315,10 @@ function handleKeyDown(event) {
 
     if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize && canMove) {
         
-        if(newX != boat.x || newY != boat.y) {gold += goldRate;}
+        if(newX != boat.x || newY != boat.y) {
+            gold += goldRate;
+            displayRandomMessage();
+        }
         
         boat.x = newX;
         boat.y = newY;
@@ -318,7 +326,6 @@ function handleKeyDown(event) {
         
         drawGrid();
         drawBoat();
-        displayRandomMessage();
         updateGold();
         updateInventory();
         checkDock();
