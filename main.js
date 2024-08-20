@@ -22,7 +22,7 @@ const boat = {
     keys: { up:false, down:false, left:false, right:false }
 }
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+// const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 const markerGeometry = new THREE.SphereGeometry(0.1, 32, 32); // Small sphere with radius 0.1
 const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color
@@ -33,9 +33,19 @@ function updateBoat(){
     if(boat.keys.left)boat.subjectiveDirection-=boat.turnSpeed;
     if(boat.keys.right)boat.subjectiveDirection+=boat.turnSpeed;
     boat.direction = roseDirection(boat.subjectiveDirection, boat.x, boat.y)
-    boat.x += ((Math.cos(MathUtils.degToRad(boat.subjectiveDirection+90)) *Math.abs(1/Math.cos(MathUtils.degToRad(boat.y)))* boat.xspeed));
-    boat.y += (Math.sin(MathUtils.degToRad(boat.subjectiveDirection+90)) * boat.yspeed);
-    boat.x = boat.x%360
+    boat.x += ((Math.cos(MathUtils.degToRad(boat.direction+90+boat.subjectiveDirection)) *Math.abs(1/Math.cos(MathUtils.degToRad(boat.y)))* boat.xspeed));
+    boat.y += (Math.sin(MathUtils.degToRad(boat.direction+90+boat.subjectiveDirection)) * boat.yspeed);
+    console.log(Math.sin(MathUtils.degToRad(boat.direction+90)))
+    console.log(boat.y)
+    boat.y%=180;
+    if(boat.y>=90 || boat.y<=-90){
+        boat.x+=180;
+        boat.direction+=180
+        boat.y-=boat.y-90
+    };
+    boat.x = boat.x%360;
+    boat.direction= boat.direction%360;
+    boat.subjectiveDirection=boat.subjectiveDirection%360;
     console.log("BOATDIRECTION: " +boat.direction)
     // console.log("X and Y: " + boat.x + ", " + boat.y)
 }
@@ -48,9 +58,9 @@ function drawBoat() {
     const position2 = latLongToVector3(boat.x, boat.y, 3);
     // console.log("Position: " + position.x + ", " + position.y + ", " + position.z)
     console.log("boatx=" + boat.x + " boaty=" + boat.y)
-    camera.position.copy(position2)
+    // camera.position.copy(position2)
     scene.add(marker);
-    camera.lookAt(position)
+    camera.lookAt(position);
     
 }
 function calculateBearing(lon, lat) {
@@ -78,15 +88,12 @@ function calculateBearing(lon, lat) {
 function roseDirection(subjectiveDirection, lon, lat) {
     // Calculate the bearing relative to the planet's North Pole
     const planetBearing = calculateBearing(lon, lat);
-
     // Add the subjective direction (offset) to the planet bearing
     let finalBearing = (planetBearing + subjectiveDirection) % 360;
-
     // Normalize the bearing to ensure it's between 0 and 360 degrees
     if (finalBearing < 0) {
         finalBearing += 360;
     }
-
     // Convert the bearing to a compass direction
     // return getCompassDirection(finalBearing);
     return finalBearing;
@@ -113,14 +120,14 @@ function getCompassDirection(bearing) {
 
 // Scene, camera, renderer
 const scene = new THREE.Scene();
-// const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-// scene.add(camera)
-// camera.position.z = 1;
-// camera.position.x = 1;
-// camera.position.y = 6;
+scene.add(camera)
+camera.position.z = 1;
+camera.position.x = 1;
+camera.position.y = 6;
 
 // Orbit controls
 // const controls = new OrbitControls(camera, renderer.domElement);
@@ -175,7 +182,7 @@ function latLongToVector3(lon, lat, radius) {
 }
 
 // Small sphere (marker)
-function createMarker(lat, lon) {
+function createMarker(lon, lat) {
     const markerGeometry = new THREE.SphereGeometry(0.1, 32, 32); // Small sphere with radius 0.1
     const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color
     const marker = new THREE.Mesh(markerGeometry, markerMaterial);
@@ -187,7 +194,7 @@ function createMarker(lat, lon) {
 }
 
 // Example: Place marker at New York City coordinates (40.7128° N, 74.0060° W)
-// createMarker(0, 90);
+createMarker(230, 80);
 
 // Latitude lines
 function createLatitudeLines() {
@@ -270,7 +277,7 @@ function animate() {
     requestAnimationFrame(animate);
     updateBoat();
     drawBoat();
-    camera.rotation.z = -MathUtils.degToRad(boat.direction) + .59;
+    // camera.rotation.z = -MathUtils.degToRad(boat.direction) + .59;
     // controls.update(0.1);
     renderer.render(scene, camera);
 }
