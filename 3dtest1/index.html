@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sailboat Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #controls { position: absolute; top: 10px; left: 10px; z-index: 100; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+      "jsm/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+    }
+        }
+    </script>
+</head>
+<body>
+    <div id="controls">
+        <button id="raiseSails">Raise Sails</button>
+        <button id="lowerSails">Lower Sails</button>
+        <button id="turnLeft">Turn Left</button>
+        <button id="turnRight">Turn Right</button>
+    </div>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r146/three.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r146/examples/js/controls/OrbitControls.js"></script> -->
+    <script type="module" src="sailboatGame.js"></script>
+</body>
+</html>

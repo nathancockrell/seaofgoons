@@ -13,40 +13,105 @@ function toDegrees(radians) {
 
 const boat = {
     x:50,
-    y:50,
-    subjectiveDirection:0,
-    direction:0,
+    y:0,
+    direction:90,
+    bearing:90,
     yspeed:.1,
     xspeed:.1,
-    turnSpeed:1,
+    speed:.01,
+    turnSpeed:.1,
     keys: { up:false, down:false, left:false, right:false }
 }
 
-// const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
 const markerGeometry = new THREE.SphereGeometry(0.1, 32, 32); // Small sphere with radius 0.1
 const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red color
 let marker = new THREE.Mesh(markerGeometry, markerMaterial);
 
 function updateBoat(){
+    if(boat.keys.left)boat.direction+=boat.turnSpeed;
+    if(boat.keys.right)boat.direction-=boat.turnSpeed;
+    
+    
+    let R = 5; 
+    const maxLatitude = 89.9;
+    let theta = (boat.bearing) * (Math.PI / 180);
+    
+    let deltaLat = boat.speed * Math.cos(theta) / R;
+    let newLat = boat.y + deltaLat * (180 / Math.PI);
 
-    if(boat.keys.left)boat.subjectiveDirection-=boat.turnSpeed;
-    if(boat.keys.right)boat.subjectiveDirection+=boat.turnSpeed;
-    boat.direction = roseDirection(boat.subjectiveDirection, boat.x, boat.y)
-    boat.x += ((Math.cos(MathUtils.degToRad(boat.direction+90+boat.subjectiveDirection)) *Math.abs(1/Math.cos(MathUtils.degToRad(boat.y)))* boat.xspeed));
-    boat.y += (Math.sin(MathUtils.degToRad(boat.direction+90+boat.subjectiveDirection)) * boat.yspeed);
-    console.log(Math.sin(MathUtils.degToRad(boat.direction+90)))
-    console.log(boat.y)
-    boat.y%=180;
-    if(boat.y>=90 || boat.y<=-90){
-        boat.x+=180;
-        boat.direction+=180
-        boat.y-=boat.y-90
-    };
-    boat.x = boat.x%360;
-    boat.direction= boat.direction%360;
-    boat.subjectiveDirection=boat.subjectiveDirection%360;
+    // Clamp latitude to prevent it from going beyond the poles
+    if (newLat > maxLatitude) {
+        newLat = maxLatitude;
+        // Optionally, flip the direction to avoid getting stuck at the pole
+        // direction = (direction + 180) % 360;
+    } else if (newLat < -maxLatitude) {
+        newLat = -maxLatitude;
+        // direction = (direction + 180) % 360;
+    }
+
+    // Calculate the change in longitude
+    let deltaLon = boat.speed * Math.sin(theta) / (R * Math.cos(newLat * (Math.PI / 180)));
+    let newLon = boat.x + deltaLon * (180 / Math.PI);
+    // Normalize longitude to stay within -180 to 180 degrees
+    newLon = ((newLon + 180) % 360) - 180;
+
+    // Calculate Bearing from boat.y and boat.x
+    let y = Math.sin(deltaLon) * Math.cos(newLat * (Math.PI / 180));
+    let x = Math.cos(boat.y * (Math.PI / 180)) * Math.sin(newLat * (Math.PI / 180)) -
+            Math.sin(boat.y * (Math.PI / 180)) * Math.cos(newLat * (Math.PI / 180)) * Math.cos(deltaLon);
+    let bearing = Math.atan2(y, x) * (180 / Math.PI);
+    // bearing = (bearing + 360) % 360;
+// Update bearing
+    // Calculate bearing from north
+    let N = calculateBearing2(0,0,boat.y,boat.x)
+    console.log(N)
+    // Set bearing to N + bearing
+    // bearing=N+bearing;
+    // bearing+=deltaLon
+    boat.direction+=bearing;
+    bearing = (bearing + 360) % 360;
+
+    boat.x=newLon;
+    boat.y=newLat;
+    boat.bearing=bearing+boat.direction;
     console.log("BOATDIRECTION: " +boat.direction)
+    console.log("BOATBearing: " +boat.bearing)
+
+
+    // let lat1 = boat.y, lon1 = boat.x; // Current position
+
+    // boat.y += deltaLat * (180 / Math.PI); // Update latitude
+    // boat.x += deltaLon * (180 / Math.PI); // Update longitude
+    
+    
+    // let lat2 = boat.y, lon2 = boat.x; // Target position
+    // boat.bearing = calculateBearing2(lat1, lon1, lat2, lon2);
+    // // boat.bearing = (Math.atan2(deltaLon, deltaLat) * (180 / Math.PI) + 360) % 360;
+    // console.log("BOATBEARING: " +boat.bearing)
+    // // boat.direction=MathUtils.degToRad(boat.direction)
+    // // boat.bearing+=boat.direction;
+    // // boat.direction= MathUtils.radToDeg(boat.direction)
+
+    // // boat.direction = roseDirection(boat.subjectiveDirection, boat.x, boat.y)
+    // // boat.x += ((Math.cos(MathUtils.degToRad(boat.direction+90+boat.bearing)) *Math.abs(1/Math.cos(MathUtils.degToRad(boat.y)))* boat.xspeed));
+    // // boat.y += (Math.sin(MathUtils.degToRad(boat.direction+90+boat.bearing)) * boat.yspeed);
+    
+    
+    // console.log(boat.y)
+
+    // boat.y%=180;
+    // if(boat.y>=90 || boat.y<=-90){
+    //     boat.x+=180;
+    //     boat.direction+=180
+    //     boat.y-=boat.y-90
+    // };
+    // boat.x = boat.x%360;
+    // boat.direction= boat.direction%360;
+    
+    
+    
     // console.log("X and Y: " + boat.x + ", " + boat.y)
 }
 function drawBoat() {
@@ -55,49 +120,66 @@ function drawBoat() {
     marker.add(camera)
     const position = latLongToVector3(boat.x, boat.y, 5); // Use the big sphere's radius (5)
     marker.position.copy(position)
-    const position2 = latLongToVector3(boat.x, boat.y, 3);
+    const position2 = latLongToVector3(boat.x, boat.y, 4);
     // console.log("Position: " + position.x + ", " + position.y + ", " + position.z)
-    console.log("boatx=" + boat.x + " boaty=" + boat.y)
-    // camera.position.copy(position2)
+    // console.log("boatx=" + boat.x + " boaty=" + boat.y)
+    camera.position.copy(position2)
     scene.add(marker);
     camera.lookAt(position);
     
 }
-function calculateBearing(lon, lat) {
-    // Since we're working with the globe, assume that North is aligned with the Prime Meridian (longitude = 0)
-    const latNorth = 90; // Latitude for the North Pole
-    const lonNorth = 0;  // Longitude for the North Pole
-    
-    lat = toRadians(lat);
-    lon = toRadians(lon);
-    
-    const latNorthRad = toRadians(latNorth);
-    const lonNorthRad = toRadians(lonNorth);
+function calculateBearing2(lat1, lon1, lat2, lon2) {
+    // Convert degrees to radians
+    let phi1 = lat1 * (Math.PI / 180);
+    let phi2 = lat2 * (Math.PI / 180);
+    let deltaLambda = (lon2 - lon1) * (Math.PI / 180);
 
-    const deltaLon = lonNorthRad - lon;
+    // Calculate bearing
+    let y = Math.sin(deltaLambda) * Math.cos(phi2);
+    let x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+    let bearing = Math.atan2(y, x) * (180 / Math.PI);
 
-    const y = Math.sin(deltaLon) * Math.cos(latNorthRad);
-    const x = Math.cos(lat) * Math.sin(latNorthRad) -
-              Math.sin(lat) * Math.cos(latNorthRad) * Math.cos(deltaLon);
-
-    let bearing = toDegrees(Math.atan2(y, x));
-    bearing = (bearing + 360) % 360; // Normalize to 0-360
+    // Normalize bearing to 0-360
+    bearing = (bearing + 360) % 360;
 
     return bearing;
 }
-function roseDirection(subjectiveDirection, lon, lat) {
-    // Calculate the bearing relative to the planet's North Pole
-    const planetBearing = calculateBearing(lon, lat);
-    // Add the subjective direction (offset) to the planet bearing
-    let finalBearing = (planetBearing + subjectiveDirection) % 360;
-    // Normalize the bearing to ensure it's between 0 and 360 degrees
-    if (finalBearing < 0) {
-        finalBearing += 360;
-    }
-    // Convert the bearing to a compass direction
-    // return getCompassDirection(finalBearing);
-    return finalBearing;
-}
+// function calculateBearing(lon, lat) {
+//     // Since we're working with the globe, assume that North is aligned with the Prime Meridian (longitude = 0)
+//     const latNorth = 90; // Latitude for the North Pole
+//     const lonNorth = 0;  // Longitude for the North Pole
+    
+//     lat = toRadians(lat);
+//     lon = toRadians(lon);
+    
+//     const latNorthRad = toRadians(latNorth);
+//     const lonNorthRad = toRadians(lonNorth);
+
+//     const deltaLon = lonNorthRad - lon;
+
+//     const y = Math.sin(deltaLon) * Math.cos(latNorthRad);
+//     const x = Math.cos(lat) * Math.sin(latNorthRad) -
+//               Math.sin(lat) * Math.cos(latNorthRad) * Math.cos(deltaLon);
+
+//     let bearing = toDegrees(Math.atan2(y, x));
+//     bearing = (bearing + 360) % 360; // Normalize to 0-360
+
+//     return bearing;
+// }
+// function roseDirection(subjectiveDirection, lon, lat) {
+//     // Calculate the bearing relative to the planet's North Pole
+//     const planetBearing = calculateBearing(lon, lat);
+//     console.log("PLANET BEARING!!!! : " + planetBearing)
+//     // Add the subjective direction (offset) to the planet bearing
+//     let finalBearing = (planetBearing + subjectiveDirection) % 360;
+//     // Normalize the bearing to ensure it's between 0 and 360 degrees
+//     if (finalBearing < 0) {
+//         finalBearing += 360;
+//     }
+//     // Convert the bearing to a compass direction
+//     // return getCompassDirection(finalBearing);
+//     return finalBearing;
+// }
 function getCompassDirection(bearing) {
     if (bearing >= 337.5 || bearing < 22.5) {
         return 'N';
@@ -120,11 +202,11 @@ function getCompassDirection(bearing) {
 
 // Scene, camera, renderer
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+// const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-scene.add(camera)
+// scene.add(camera)
 camera.position.z = 1;
 camera.position.x = 1;
 camera.position.y = 6;
@@ -146,15 +228,26 @@ camera.position.y = 6;
 // controls.autoForward = true;
 // controls.dragToLook = false;
 
+
+
 // Sphere (Earth)
 const sphereGeometry = new THREE.SphereGeometry(5, 32, 32);
 const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00aaff, wireframe: true });
 const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 scene.add(sphere);
 const crustGeometry = new THREE.SphereGeometry(4.9, 64, 64);
-const crustMaterial = new THREE.MeshBasicMaterial({ color: 0x00bb00, wireframe: false });
-const crust = new THREE.Mesh(crustGeometry, crustMaterial);
-scene.add(crust);
+
+
+
+
+const loader = new THREE.TextureLoader();
+loader.load('2by1.png', function(texture) {
+    const crustMaterial = new THREE.MeshBasicMaterial({ map: texture });
+    const crust = new THREE.Mesh(crustGeometry, crustMaterial);
+    scene.add(crust);
+    // crust.material = material;
+});
+
 const northGeometry = new THREE.BufferGeometry().setFromPoints([
     new THREE.Vector3(0,0,0),
     new THREE.Vector3(0,10,0)
