@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 
 let scene, camera, renderer;
-let boat, planet, island;
+let boat, planet, island, figurehead;
 let boatSpeed = 0;
 const maxSpeed = .1;
 const minSpeed = 0;
@@ -51,7 +51,7 @@ function init() {
     const islandMaterial = new THREE.MeshLambertMaterial({ color:0xffffff })
     island = new THREE.Mesh(islandGeometry, islandMaterial);
     scene.add(island);
-    island.position.set(50,0,0)
+    island.position.set(45,0,0);
 
     // lighting
     const al = new THREE.AmbientLight(0xff55ff, 0.3)
@@ -62,7 +62,7 @@ function init() {
     scene.add(dl)
 
     // Create the sailboat
-    const boatGeometry = new THREE.BoxGeometry(0.5, .5, 3);
+    const boatGeometry = new THREE.SphereGeometry(.1,16,16);
     const boatMaterial = new THREE.MeshLambertMaterial({ color: 0xFFFFFF });
     boat = new THREE.Mesh(boatGeometry, boatMaterial);
     scene.add(boat);
@@ -70,6 +70,12 @@ function init() {
     // Initial position of the boat
     boat.position.copy(boatPosition);
 
+    // make figurehead
+    const fGeometry = new THREE.BoxGeometry(1,3,5);
+    const fMaterial = new THREE.MeshLambertMaterial({ color:0x55ff55 })
+    figurehead = new THREE.Mesh(fGeometry, fMaterial)
+    boat.add(figurehead);
+    figurehead.position.set(0,0,1.2)
     // Add camera to the boat with an offset
     // camera.position.set(0, 0, 0);
     scene.add(camera);
@@ -79,22 +85,18 @@ function init() {
     // Event listeners for controls
     document.getElementById('raiseSails').addEventListener('click', () => {
         if (boatSpeed > minSpeed) boatSpeed -= 0.01;
-        console.log('Raise sails:', boatSpeed); // Debugging
     });
 
     document.getElementById('lowerSails').addEventListener('click', () => {
         if (boatSpeed < maxSpeed) boatSpeed += 0.01;
-        console.log('Lower sails:', boatSpeed); // Debugging
     });
 
     document.getElementById('turnLeft').addEventListener('click', () => {
         rotateBoatDirection(Math.PI / 64); // Rotate left
-        console.log('Turn left:', boatDirection); // Debugging
     });
 
     document.getElementById('turnRight').addEventListener('click', () => {
         rotateBoatDirection(-Math.PI / 64); // Rotate right
-        console.log('Turn right:', boatDirection); // Debugging
     });
 
     window.addEventListener('resize', onWindowResize, false);
@@ -105,6 +107,19 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+function vector3ToLatLong(vector) {
+    const x = vector.x;
+    const y = vector.y;
+    const z = vector.z;
+
+    const radius = Math.sqrt(x * x + y * y + z * z); // Calculate the radius
+    const lat = Math.asin(z / radius) * THREE.MathUtils.RAD2DEG; // Latitude in degrees
+    const lon = Math.atan2(y, x) * THREE.MathUtils.RAD2DEG; // Longitude in degrees
+
+    return { lat: lat, lon: lon };
+}
+
 
 function rotateBoatDirection(angle) {
     // Rotate the boat direction around the axis perpendicular to the boat's current direction and the sphere's center
@@ -124,6 +139,9 @@ function updateBoatPosition() {
     // Re-normalize to keep the boat on the sphere's surface
     boatPosition.normalize().multiplyScalar(planetRadius);
     boat.position.copy(boatPosition);
+
+    const latLon = vector3ToLatLong(boat.position);
+    console.log("lat and lon ", latLon);
 
     // Recalculate the boat's direction to be tangent to the sphere
     const up = boatPosition.clone().normalize(); // This is the "up" direction from the planet's center
@@ -147,11 +165,11 @@ function updateBoatPosition() {
 function updateCameraPosition() {
     // Calculate the direction from the center of the sphere to the boat (normalized)
     const directionFromCenter = boatPosition.clone().normalize();
-    console.log("Boat Position: ", boat.position);
-    console.log("Direction from center: ", directionFromCenter.multiplyScalar(10));
+
+    // console.log(directionFromCenter.multiplyScalar(10));
 
     // Set the camera's local position 10 units away along the direction from the center
-    const cameraOffset = directionFromCenter.multiplyScalar(7);
+    const cameraOffset = directionFromCenter.multiplyScalar(69);
     camera.position.copy(cameraOffset);
 
     // Make sure the camera looks at the boat's local position
